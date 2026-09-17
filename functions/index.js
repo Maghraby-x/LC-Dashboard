@@ -5,7 +5,7 @@ export async function onRequest(context) {
   const requestUrl = new URL(context.request.url);
   const targetUrl = new URL(TARGET);
 
-  targetUrl.pathname = requestUrl.pathname;
+  // Keep the Apps Script /exec path
   targetUrl.search = requestUrl.search;
 
   const response = await fetch(targetUrl, {
