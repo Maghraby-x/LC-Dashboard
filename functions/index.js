@@ -3,12 +3,8 @@ const TARGET =
 
 export async function onRequest(context) {
   const requestUrl = new URL(context.request.url);
-  const targetUrl = new URL(TARGET);
 
-  // Keep the Apps Script /exec path
-  targetUrl.search = requestUrl.search;
-
-  const response = await fetch(targetUrl, {
+  const response = await fetch(TARGET + requestUrl.search, {
     method: context.request.method,
     headers: context.request.headers,
     body:
@@ -16,10 +12,23 @@ export async function onRequest(context) {
       context.request.method === "HEAD"
         ? undefined
         : context.request.body,
-    redirect: "follow",
+    redirect: "manual",
   });
 
   const headers = new Headers(response.headers);
+
+  // Prevent Google from redirecting the visitor away from pages.dev
+  const location = headers.get("Location");
+
+  if (location) {
+    const target = new URL(location, TARGET);
+
+    // Keep the visitor on our Pages domain
+    const newLocation =
+      requestUrl.origin + target.pathname + target.search;
+
+    headers.set("Location", newLocation);
+  }
 
   return new Response(response.body, {
     status: response.status,
